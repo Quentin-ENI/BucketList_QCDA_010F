@@ -31,6 +31,23 @@ class WishType extends AbstractType
             ->add('isPublished', CheckboxType::class, [
                 "attr" => ["checked" => "true"],
                 "label" => "Published"
+            ])
+            ->add('image', FileType::class, [
+                'label' => 'Image (png or jpg, max 1Mo)',
+                'mapped' => false,
+                'required' => false,
+                'constraints' => [
+                    new File(
+                        maxSize: '1024k',
+                        extensions: ['png', 'jpg'],
+                        extensionsMessage: 'Please upload a valid PDF document',
+                    )
+                ],
+            ])
+            ->add('image_delete', CheckboxType::class, [
+                'label' => 'Delete image',
+                'mapped' => false,
+                'required' => false,
             ]);
     }
 

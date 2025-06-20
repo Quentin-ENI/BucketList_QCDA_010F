@@ -8,9 +8,12 @@ use App\Repository\WishRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route("/wishes", name: "wish_")]
 class WishController extends AbstractController
@@ -37,7 +40,9 @@ class WishController extends AbstractController
     #[Route("/create", name: "create")]
     public function create(
         EntityManagerInterface $entityManager,
-        Request $request
+        Request $request,
+        SluggerInterface $slugger,
+        #[Autowire('%kernel.project_dir%/public/uploads/images')] string $imagesDirectory
     ) : Response
     {
         $wish = new Wish();
@@ -47,6 +52,18 @@ class WishController extends AbstractController
 
         if ($wishForm->isSubmitted() && $wishForm->isValid()) {
             try {
+                $imageFile=$wishForm->get('image')->getData();
+                if ($imageFile){
+                    $originalFileName= pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safeFilename = $slugger->slug($originalFileName);
+                    $newFileName = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+                    try {
+                        $imageFile->move($imagesDirectory, $newFileName);
+                    } catch (FileException $exception) {
+                        $this->addFlash('warning', $exception->getMessage());
+                    }
+                    $wish->setImageFilename($newFileName);
+                }
                 $wish->setDateCreated(new \DateTime());
                 $entityManager->persist($wish);
                 $entityManager->flush();
@@ -67,7 +84,9 @@ class WishController extends AbstractController
         int $id,
         WishRepository $wishRepository,
         EntityManagerInterface $entityManager,
-        Request $request
+        Request $request,
+         SluggerInterface $slugger,
+        #[Autowire('%kernel.project_dir%/public/uploads/images')] string $imagesDirectory
     ) : Response {
         $wish = $wishRepository->find($id);
 
@@ -80,6 +99,23 @@ class WishController extends AbstractController
         $wishForm->handleRequest($request);
 
         if ($wishForm->isSubmitted() && $wishForm->isValid()) {
+            if ($wish->getImageFilename()){
+                if($wishForm->get('image_delete')==1){
+                    $wish->setImageFilename(null);
+                }
+            }
+            $imageFile=$wishForm->get('image')->getData();
+            if ($imageFile){
+                $originalFileName= pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFileName);
+                $newFileName = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+                try {
+                    $imageFile->move($imagesDirectory, $newFileName);
+                } catch (FileException $exception) {
+                    $this->addFlash('warning', $exception->getMessage());
+                }
+                $wish->setImageFilename($newFileName);
+            }
             try {
                 $wish->setDateUpdated(new \DateTime());
                 $entityManager->persist($wish);
@@ -92,7 +128,8 @@ class WishController extends AbstractController
         }
 
         return $this->render("wish/update.html.twig", [
-            'wishForm' => $wishForm
+            'wishForm' => $wishForm,
+            'wish' => $wish
         ]);
     }
 
