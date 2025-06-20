@@ -5,9 +5,18 @@
 {% endblock %}
 
 {% block main %}
-    <h1>Add your wishes !</h1>
+    <h1>Modify your wish !</h1>
     {{ form_start(wishForm) }}
-    {{ form_widget(wishForm) }}
+    {{ form_row(wishForm.title) }}
+    {{ form_row(wishForm.description) }}
+    {{ form_row(wishForm.author) }}
+    {{ form_row(wishForm.image) }}
+    {{ form_row(wishForm.isPublished) }}
+    {% if wishForm.image is not null %}
+        <img src="{{ asset('uploads/images/' ~ wish.imageFilename) }}" alt="image of {{ wish.title }}">
+        {{ form_row(wishForm.image_delete) }}
+    {% endif %}
+    <br>
     <button type="submit">Update</button>
     {{ form_end(wishForm) }}
 {% endblock %}
