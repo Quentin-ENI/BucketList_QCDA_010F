@@ -5,7 +5,7 @@
 {% block main %}
     <main>
         <div>
-            <img src="{{ asset('uploads/images/' ~ wish.imageFilename) }}" alt="image of {{ wish.title }}">
+            <img src="{{ asset('uploads/images/wish/' ~ wish.imageFilename) }}" alt="image of {{ wish.title }}">
             <br>
             <strong>{{ wish.title }}</strong>
             {% if wish.description is not null %}

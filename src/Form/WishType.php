@@ -11,6 +11,8 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
 
@@ -44,11 +46,19 @@ class WishType extends AbstractType
                     )
                 ],
             ])
-            ->add('image_delete', CheckboxType::class, [
-                'label' => 'Delete image',
-                'mapped' => false,
-                'required' => false,
-            ]);
+            ->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
+                $wish = $event->getData();
+                $form = $event->getForm();
+
+                // Vérifie si une image existe
+                if ($wish && $wish->getImageFilename()) {
+                    $form->add('delete-image', CheckboxType::class, [
+                        'label' => 'Delete current image',
+                        'mapped' => false,
+                        'required' => false,
+                    ]);
+                }
+            });
     }
 
     public function configureOptions(OptionsResolver $resolver): void

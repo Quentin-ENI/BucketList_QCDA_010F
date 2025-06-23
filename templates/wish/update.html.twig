@@ -7,14 +7,9 @@
 {% block main %}
     <h1>Modify your wish !</h1>
     {{ form_start(wishForm) }}
-    {{ form_row(wishForm.title) }}
-    {{ form_row(wishForm.description) }}
-    {{ form_row(wishForm.author) }}
-    {{ form_row(wishForm.image) }}
-    {{ form_row(wishForm.isPublished) }}
+    {{ form_row(wishForm) }}
     {% if wishForm.image is not null %}
-        <img src="{{ asset('uploads/images/' ~ wish.imageFilename) }}" alt="image of {{ wish.title }}">
-        {{ form_row(wishForm.image_delete) }}
+        <img src="{{ asset('uploads/images/wish/' ~ wish.imageFilename) }}" alt="image of {{ wish.title }}">
     {% endif %}
     <br>
     <button type="submit">Update</button>

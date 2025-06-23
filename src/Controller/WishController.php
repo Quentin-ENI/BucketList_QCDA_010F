@@ -42,7 +42,7 @@ class WishController extends AbstractController
         EntityManagerInterface $entityManager,
         Request $request,
         SluggerInterface $slugger,
-        #[Autowire('%kernel.project_dir%/public/uploads/images')] string $imagesDirectory
+        #[Autowire('%kernel.project_dir%/public/uploads/images/wish')] string $imagesDirectory
     ) : Response
     {
         $wish = new Wish();
@@ -59,10 +59,10 @@ class WishController extends AbstractController
                     $newFileName = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
                     try {
                         $imageFile->move($imagesDirectory, $newFileName);
+                        $wish->setImageFilename($newFileName);
                     } catch (FileException $exception) {
                         $this->addFlash('warning', $exception->getMessage());
                     }
-                    $wish->setImageFilename($newFileName);
                 }
                 $wish->setDateCreated(new \DateTime());
                 $entityManager->persist($wish);
@@ -86,7 +86,7 @@ class WishController extends AbstractController
         EntityManagerInterface $entityManager,
         Request $request,
          SluggerInterface $slugger,
-        #[Autowire('%kernel.project_dir%/public/uploads/images')] string $imagesDirectory
+        #[Autowire('%kernel.project_dir%/public/uploads/images/wish')] string $imagesDirectory
     ) : Response {
         $wish = $wishRepository->find($id);
 
@@ -99,24 +99,43 @@ class WishController extends AbstractController
         $wishForm->handleRequest($request);
 
         if ($wishForm->isSubmitted() && $wishForm->isValid()) {
-            if ($wish->getImageFilename()){
-                if($wishForm->get('image_delete')==1){
-                    $wish->setImageFilename(null);
-                }
+
+            // On supprime l'image
+            //// SI (Vérification si le coche est là OU si on modifie l'image) ET si l'image est présente
+            ///// Récupération du chemin de l'ancienne image
+            ///// Vérification si l'image existe
+            ///// Si c'est présent on le supprime
+
+            $isDeleteChecked = false;
+            if ($wishForm->get('delete-image')->getData() !== null) {
+                $isDeleteChecked = $wishForm->get('delete-image')->getData();
             }
-            $imageFile=$wishForm->get('image')->getData();
-            if ($imageFile){
-                $originalFileName= pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFileName);
-                $newFileName = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
-                try {
-                    $imageFile->move($imagesDirectory, $newFileName);
-                } catch (FileException $exception) {
-                    $this->addFlash('warning', $exception->getMessage());
+
+            $imageFile = $wishForm->get('image')->getData();
+
+            $shouldImageBeDeleted = ($isDeleteChecked or $imageFile) and $wish->getImageFilename();
+
+            if ($shouldImageBeDeleted) {
+                $oldPath = $imagesDirectory . '/' . $wish->getImageFilename();
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
                 }
-                $wish->setImageFilename($newFileName);
+                $wish->setImageFilename("");
             }
+
+
             try {
+                if ($imageFile){
+                    $originalFileName= pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safeFilename = $slugger->slug($originalFileName);
+                    $newFileName = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+                    try {
+                        $imageFile->move($imagesDirectory, $newFileName);
+                        $wish->setImageFilename($newFileName);
+                    } catch (FileException $exception) {
+                        $this->addFlash('warning', $exception->getMessage());
+                    }
+                }
                 $wish->setDateUpdated(new \DateTime());
                 $entityManager->persist($wish);
                 $entityManager->flush();

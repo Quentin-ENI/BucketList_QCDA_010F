@@ -38,8 +38,8 @@ class Wish
     #[ORM\Column(nullable: true)]
     private ?\DateTime $dateUpdated = null;
 
-    #[ORM\Column(type: 'string')]
-    private string $imageFilename;
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $imageFilename = "";
 
     public function getId(): ?int
     {
