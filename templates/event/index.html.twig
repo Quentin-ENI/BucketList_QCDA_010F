@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block main %}
+
+    {{ form_start(eventForm) }}
+    {{ form_widget(eventForm) }}
+    <button type="submit">Search</button>
+    {{ form_end(eventForm) }}
+
+    <ul>
+        {% for event in events %}
+            <li class="event-card">
+                <p>{{ event.daterange }}</p>
+                <img src="{{ event.thumbnail }}" alt="{{ event.description }}">
+                <div>
+                    <h2>{{ event.title }}</h2>
+                    <p>{{ event.locationName }}</p>
+                    <p>{{ event.locationAddress }}</p>
+                    <p>{{ event.description }}</p>
+                    <a href="{{ event.canonicalUrl }}" target="_blank">
+                        <p>{{ event.canonicalUrl }}</p>
+                    </a>
+                </div>
+
+                {% if event.city %}{{ event.city }} {% else %} N/A {% endif %} - {{ event.daterange }}
+            </li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}
