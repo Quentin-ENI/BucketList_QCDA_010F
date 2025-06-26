@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 class Category
@@ -17,6 +18,7 @@ class Category
     private int $id;
 
     #[ORM\Column(type: TYPES::STRING, length: 50, unique: true)]
+    #[Groups(['wish:read'])]
     private string $name;
 
     #[ORM\OneToMany(targetEntity: Wish::class, mappedBy: 'category')]
