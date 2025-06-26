@@ -12,9 +12,6 @@ services:
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         # config/services.yaml
 
-    App\Api\PublishedWishExtension:
-        tags: ['api_platform.doctrine.orm.query_extension.collection', 'api_platform.doctrine.orm.query_extension.item']
-
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
     App\:

@@ -6,7 +6,6 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Repository\WishRepository;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -15,14 +14,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 
 #[ORM\Entity(repositoryClass: WishRepository::class)]
-#[ApiResource(
-    operations: [
-        new GetCollection(),
-        new Get()
-    ],
-    normalizationContext: ['groups' => ['wish:read']],
-)]
-//#[Get(security: "is_granted('ROLE_USER')")]
+#[ApiResource]
+#[GetCollection(normalizationContext: ['groups' => ['wish:read']])]
+#[Get(normalizationContext: ['groups' => ['wish:read']])]
 class Wish
 {
     #[ORM\Id]
@@ -49,7 +43,6 @@ class Wish
     private ?\DateTime $dateCreated = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['wish:read'])]
     private ?\DateTime $dateUpdated = null;
 
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'wishes')]
@@ -91,7 +84,7 @@ class Wish
         return $this;
     }
 
-    public function isPublished(): ?bool
+    public function getIsPublished(): ?bool
     {
         return $this->isPublished;
     }

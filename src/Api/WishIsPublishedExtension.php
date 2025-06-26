@@ -1,4 +1,7 @@
 <?php
+
+namespace App\Api;
+
 use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use Doctrine\ORM\QueryBuilder;
@@ -6,24 +9,17 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use Symfony\Component\Security\Core\Security;
 use App\Entity\Wish;
-namespace App\Api;
 
-
-
-class PublishedWishExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
+class WishIsPublishedExtension implements QueryCollectionExtensionInterface
 {
     public function applyToCollection(QueryBuilder $qb, QueryNameGeneratorInterface $qng, string $resourceClass, Operation $operation = null, array $context = []): void
     {
-        if ($resourceClass === Wish::class) {
-            $qb->andWhere('o.isPublished = true');
+        if (Wish::class !== $resourceClass) {
+            return;
         }
-    }
 
-    public function applyToItem(QueryBuilder $qb, QueryNameGeneratorInterface $qng, string $resourceClass, array $identifiers, Operation $operation = null, array $context = []): void
-    {
-        if ($resourceClass === Wish::class) {
-            $qb->andWhere('o.isPublished = true');
-        }
+        $rootAlias = $qb->getRootAliases()[0];
+        $qb->andWhere(sprintf('%s.isPublished = :isPublished', $rootAlias))
+            ->setParameter('isPublished', true);
     }
-
 }
