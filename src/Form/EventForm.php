@@ -2,7 +2,7 @@
 
 namespace App\Form;
 
-use App\Model\Event;
+use App\DTO\EventDTO;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -22,7 +22,7 @@ class EventForm extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Event::class,
+            'data_class' => EventDTO::class,
         ]);
     }
 }

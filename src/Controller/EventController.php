@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\DTO\EventDTO;
 use App\Form\EventForm;
 use App\Model\Event;
+use App\Service\EventAPIService;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,40 +15,37 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 final class EventController extends AbstractController
 {
-    private const URL = "https://public.opendatasoft.com/api/records/1.0/search/?dataset=evenements-publics-openagenda";
 
-    #[Route('/event', name: 'app_event', methods: ['GET', 'POST'])]
-    public function index(
+    #[Route('/events', name: 'event_list', methods: ['GET', 'POST'])]
+    public function list(
         SerializerInterface $serializer,
-        Request $request
+        Request $request,
+        EventAPIService $eventAPIService
     ): Response
     {
-        $url = self::URL;
-
-        $events = [];
-
-        $event = new Event();
-        $eventForm = $this->createForm(EventForm::class, $event);
+        // Traitement du formulaire
+        $eventDTO = new EventDTO();
+        $eventForm = $this->createForm(EventForm::class, $eventDTO);
 
         $eventForm->handleRequest($request);
 
+        $url = EventAPIService::BASE_URL;
+
         if ($eventForm->isSubmitted() && $eventForm->isValid()) {
-            $varCity = '&refine.location_city=';
-            $varDate = '&refine.firstdate_begin=';
-
-            if ($event->getCity()) {
-                $url .= $varCity . urlencode($event->getCity());
+            if ($eventDTO->getCity()) {
+                $url .= EventAPIService::URL_EXTENSION_CITY . urlencode($eventDTO->getCity());
             }
 
-            if ($event->getStartDate()) {
-                $startDate = $event->getStartDate()->format('Y-m-d');
-                $url .= $varDate . $startDate;
+            if ($eventDTO->getStartDate()) {
+                $startDate = $eventDTO->getStartDate()->format('Y-m-d');
+                $url .= EventAPIService::URL_EXTENSION_FIRSTDATE . $startDate;
             }
-
-            //Call API
-            $content = file_get_contents($url);
-            $events = $serializer->decode($content, 'json')['records'];
         }
+
+        $url .= "&limit=20";
+
+        // Appel API externe
+        $events = $eventAPIService->fetchEvents($url);
 
         return $this->render('event/index.html.twig', [
             'events' => $events,
